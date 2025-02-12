@@ -31,10 +31,6 @@
         .dark-mode .subtitle {
             background: #333;
         }
-        #mode-switch {
-            margin-top: 10px;
-            cursor: pointer;
-        }
         #twitch-player {
             width: 800px;
             height: 450px;
@@ -98,11 +94,6 @@
     <h1>🎲 Twitch Стрим-Рулетка</h1>
     <p class="subtitle">Рандомный стрим на 5 минут! Голосуй, и если выиграешь – твой стример покажется всем!</p>
 
-    <label id="mode-switch">
-        🌞 Day Mode | 🌙 Dark Mode
-        <input type="checkbox" checked onchange="toggleDarkMode()">
-    </label>
-
     <div id="twitch-player"></div>
     <p>⏳ До смены стрима: <span id="timer">300</span> сек.</p>
 
@@ -115,7 +106,7 @@
         <h3>📊 Голоса за стримеров:</h3>
         <ul id="vote-list"></ul>
 
-        <p>⏳ До конца голосования: <span id="vote-timer">300</span> сек.</p>
+        <p>⏳ До конца голосования: <span id="vote-timer" style="display:none">15</span> сек.</p> <!-- Таймер скрыт по умолчанию -->
     </div>
 
     <footer>
@@ -126,7 +117,7 @@
             </label>
         </div>
         <div>
-            <p>Автор: <a href="https://github.com/sokohilton2">sokohilton2</a></p>
+            <p>Автор: <a href="https://www.twitch.tv/sokohilton2">sokohilton2</a></p>
             <p>Поддержать автора через PayPal: <a href="https://streamlabs.com/sokohilton2/tip" target="_blank">Поддержать</a></p>
         </div>
     </footer>
@@ -192,7 +183,7 @@
                 }
             });
 
-            // Если нет голосов, скрыть таймер
+            // Показать таймер голосования, если есть хотя бы один голос
             document.getElementById("vote-timer").style.display = hasVotes ? "inline" : "none";
         }
 
