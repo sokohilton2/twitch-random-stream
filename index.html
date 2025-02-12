@@ -69,6 +69,28 @@
             font-weight: bold;
             color: red;
         }
+
+        footer {
+            margin-top: 20px;
+            padding: 10px;
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .dark-mode footer {
+            background: #333;
+            color: white;
+        }
+
+        footer a {
+            color: #4CAF50;
+            text-decoration: none;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
     </style>
 </head>
 <body>
@@ -78,7 +100,7 @@
 
     <label id="mode-switch">
         🌞 Day Mode | 🌙 Dark Mode
-        <input type="checkbox" onchange="toggleDarkMode()">
+        <input type="checkbox" checked onchange="toggleDarkMode()">
     </label>
 
     <div id="twitch-player"></div>
@@ -96,11 +118,24 @@
         <p>⏳ До конца голосования: <span id="vote-timer">300</span> сек.</p>
     </div>
 
+    <footer>
+        <div>
+            <label>
+                🌞 Day Mode | 🌙 Dark Mode
+                <input type="checkbox" checked onchange="toggleDarkMode()">
+            </label>
+        </div>
+        <div>
+            <p>Автор: <a href="https://github.com/sokohilton2">sokohilton2</a></p>
+            <p>Поддержать автора через PayPal: <a href="https://streamlabs.com/sokohilton2/tip" target="_blank">Поддержать</a></p>
+        </div>
+    </footer>
+
     <script>
         let currentStreamer = "";
         let votes = {};
         let countdown = 300; // 5 минут
-        let voteCountdown = 300; // Таймер голосования
+        let voteCountdown = 15; // Таймер голосования (15 секунд)
 
         async function fetchRandomStreamer() {
             try {
@@ -146,11 +181,19 @@
         function updateVoteList() {
             let voteList = document.getElementById("vote-list");
             voteList.innerHTML = "";
+
+            let hasVotes = false;
             Object.keys(votes).forEach(streamer => {
-                let li = document.createElement("li");
-                li.textContent = `${streamer}: ${votes[streamer]} голосов`;
-                voteList.appendChild(li);
+                if (votes[streamer] > 0) {
+                    hasVotes = true;
+                    let li = document.createElement("li");
+                    li.textContent = `${streamer}: ${votes[streamer]} голосов`;
+                    voteList.appendChild(li);
+                }
             });
+
+            // Если нет голосов, скрыть таймер
+            document.getElementById("vote-timer").style.display = hasVotes ? "inline" : "none";
         }
 
         function selectWinnerAndReset() {
@@ -184,7 +227,7 @@
                 }
 
                 if (voteCountdown <= 0) {
-                    voteCountdown = 300; // Обновляем голосование
+                    voteCountdown = 15; // Обновляем голосование
                     votes = {};
                     updateVoteList();
                 }
