@@ -3,39 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Случайный Twitch-стрим</title>
+    <title>🎲 Twitch Стрим-Рулетка</title>
     <script src="https://player.twitch.tv/js/embed/v1.js"></script>
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
-            gap: 20px;
+            text-align: center;
+            background: #f0f0f0;
+            color: #333;
+            transition: background 0.3s, color 0.3s;
+        }
+        .dark-mode {
+            background: #121212;
+            color: #ffffff;
+        }
+        h1 {
             margin-top: 20px;
         }
-        #main-container {
-            display: flex;
-            flex-direction: row;
+        .subtitle {
+            background: #ddd;
+            padding: 10px;
+            font-size: 14px;
+            border-radius: 5px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .dark-mode .subtitle {
+            background: #333;
+        }
+        #mode-switch {
+            margin-top: 10px;
+            cursor: pointer;
         }
         #twitch-player {
             width: 800px;
             height: 450px;
+            margin: auto;
             border: 1px solid #ccc;
         }
         #sidebar {
-            width: 300px;
-            padding: 10px;
-            border: 1px solid #ccc;
+            width: 400px;
+            margin: auto;
+            text-align: left;
+            padding: 20px;
             background: #f9f9f9;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            display: inline-block;
+            margin-top: 20px;
+        }
+        .dark-mode #sidebar {
+            background: #222;
+            border-color: #444;
         }
         #vote-list {
-            margin-top: 10px;
             padding: 10px;
             background: white;
             border-radius: 5px;
         }
-        #timer {
+        .dark-mode #vote-list {
+            background: #333;
+        }
+        #timer, #vote-timer {
             font-size: 20px;
             font-weight: bold;
             color: red;
@@ -43,28 +72,35 @@
     </style>
 </head>
 <body>
-    <div id="main-container">
-        <div>
-            <h1>📺 Случайный Twitch-стрим (русский)</h1>
-            <div id="twitch-player"></div>
-            <p>⏳ До смены стрима: <span id="timer">300</span> сек.</p>
-        </div>
 
-        <div id="sidebar">
-            <h2>🔍 Выбор стримера</h2>
-            <p>Вы можете проголосовать за стримера, и если голосов будет много – он появится в окне.</p>
-            <input type="text" id="streamerInput" placeholder="Введите имя стримера">
-            <button onclick="voteForStreamer()">Голосовать</button>
+    <h1>🎲 Twitch Стрим-Рулетка</h1>
+    <p class="subtitle">Рандомный стрим на 5 минут! Голосуй, и если выиграешь – твой стример покажется всем!</p>
 
-            <h3>📊 Голоса за стримеров:</h3>
-            <ul id="vote-list"></ul>
-        </div>
+    <label id="mode-switch">
+        🌞 Day Mode | 🌙 Dark Mode
+        <input type="checkbox" onchange="toggleDarkMode()">
+    </label>
+
+    <div id="twitch-player"></div>
+    <p>⏳ До смены стрима: <span id="timer">300</span> сек.</p>
+
+    <div id="sidebar">
+        <h2>🔍 Выбор стримера</h2>
+        <p>Вы можете проголосовать за стримера, и если голосов будет много – он появится в окне.</p>
+        <input type="text" id="streamerInput" placeholder="Введите имя стримера">
+        <button onclick="voteForStreamer()">Голосовать</button>
+
+        <h3>📊 Голоса за стримеров:</h3>
+        <ul id="vote-list"></ul>
+
+        <p>⏳ До конца голосования: <span id="vote-timer">300</span> сек.</p>
     </div>
 
     <script>
         let currentStreamer = "";
         let votes = {};
         let countdown = 300; // 5 минут
+        let voteCountdown = 300; // Таймер голосования
 
         async function fetchRandomStreamer() {
             try {
@@ -133,14 +169,30 @@
 
         function startCountdown() {
             let timerElement = document.getElementById("timer");
+            let voteTimerElement = document.getElementById("vote-timer");
+
             setInterval(() => {
                 countdown--;
+                voteCountdown--;
+
                 timerElement.textContent = countdown;
+                voteTimerElement.textContent = voteCountdown;
+
                 if (countdown <= 0) {
-                    countdown = 300; // Обновляем на 5 минут
+                    countdown = 300; // Обновляем таймер
                     selectWinnerAndReset();
                 }
+
+                if (voteCountdown <= 0) {
+                    voteCountdown = 300; // Обновляем голосование
+                    votes = {};
+                    updateVoteList();
+                }
             }, 1000);
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle("dark-mode");
         }
 
         fetchRandomStreamer();
