@@ -97,9 +97,29 @@
             font-size: 20px;
         }
 
+        /* Флажки для переключения языка */
+        .language-switch {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .flag {
+            width: 30px;
+            height: 20px;
+            cursor: pointer;
+        }
+
     </style>
 </head>
 <body>
+
+    <div class="language-switch">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/f4/Flag_of_Russia.svg/640px-Flag_of_Russia.svg.png" class="flag" onclick="switchLanguage('ru')" alt="Russia Flag">
+        <img src="https://upload.wikimedia.org/wikipedia/commons/a/a4/Flag_of_the_United_States.svg" class="flag" onclick="switchLanguage('en')" alt="US Flag">
+    </div>
 
     <h1>🎲 Twitch Стрим-Рулетка</h1>
     <p class="subtitle">Рандомный стрим на 5 минут! Голосуй, и если выиграешь – твой стример покажется всем!</p>
@@ -145,10 +165,11 @@
         let countdown = 300; // 5 минут
         let voteCountdown = 15; // Таймер голосования (15 секунд)
         let isVoting = false; // Флаг, чтобы определить, началось ли голосование
+        let language = 'ru'; // По умолчанию язык русский
 
         async function fetchRandomStreamer() {
             try {
-                let response = await fetch("https://twitch-proxy-4d59.onrender.com/twitch");
+                let response = await fetch(`https://twitch-proxy-4d59.onrender.com/twitch?language=${language}`);
                 let data = await response.json();
 
                 let liveStreams = data.data.filter(stream => stream.type === "live");
@@ -253,6 +274,11 @@
 
         function resetStreamer() {
             fetchRandomStreamer(); // Сбрасываем текущего стримера и выбираем нового случайного
+        }
+
+        function switchLanguage(lang) {
+            language = lang; // Устанавливаем выбранный язык
+            fetchRandomStreamer(); // Перезагружаем стримы с новым языком
         }
 
         fetchRandomStreamer();
