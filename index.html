@@ -3,9 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Twitch Random Stream</title>
+    <title>Twitch API Test</title>
+    <script>
+        function fetchTwitchStreams() {
+            fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent("https://api.twitch.tv/helix/streams?game_id=509658&language=ru"), {
+                headers: {
+                    "Client-ID": "b8gm3ocj4zuniuakjlbb3yhje7v98q",
+                    "Authorization": "Bearer hqdqjbl7ongdzbylz33zo2zx5np99r"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+                document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+            })
+            .catch(error => {
+                console.error("Ошибка:", error);
+                document.getElementById("output").innerText = "Ошибка запроса к Twitch API.";
+            });
+        }
+    </script>
 </head>
 <body>
-    <h1>Привет, мир! Это тестовая страница для GitHub Pages.</h1>
+    <h1>Тест Twitch API</h1>
+    <button onclick="fetchTwitchStreams()">Запросить стримы</button>
+    <pre id="output">Здесь будет ответ API...</pre>
 </body>
 </html>
