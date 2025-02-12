@@ -9,8 +9,8 @@
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            background: #f0f0f0;
-            color: #333;
+            background: #121212; /* Темный фон по умолчанию */
+            color: #ffffff; /* Светлый текст по умолчанию */
             transition: background 0.3s, color 0.3s;
         }
         .dark-mode {
@@ -21,7 +21,7 @@
             margin-top: 20px;
         }
         .subtitle {
-            background: #ddd;
+            background: #333;
             padding: 10px;
             font-size: 14px;
             border-radius: 5px;
@@ -42,15 +42,11 @@
             margin: auto;
             text-align: left;
             padding: 20px;
-            background: #f9f9f9;
-            border: 1px solid #ccc;
+            background: #222; /* Темный фон для боковой панели */
+            border: 1px solid #444;
             border-radius: 5px;
             display: inline-block;
             margin-top: 20px;
-        }
-        .dark-mode #sidebar {
-            background: #222;
-            border-color: #444;
         }
         #vote-list {
             padding: 10px;
@@ -69,12 +65,7 @@
         footer {
             margin-top: 20px;
             padding: 10px;
-            background: #f0f0f0;
-            color: #333;
-        }
-
-        .dark-mode footer {
-            background: #333;
+            background: #333; /* Темный фон для футера */
             color: white;
         }
 
@@ -85,6 +76,25 @@
 
         footer a:hover {
             text-decoration: underline;
+        }
+
+        /* Кнопка сброса с иконкой кубика */
+        #reset-button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            font-size: 18px;
+            cursor: pointer;
+            padding: 10px 20px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        #reset-button i {
+            margin-right: 8px;
+            font-size: 20px;
         }
 
     </style>
@@ -107,6 +117,11 @@
         <ul id="vote-list"></ul>
 
         <p>⏳ До конца голосования: <span id="vote-timer" style="display:none">15</span> сек.</p> <!-- Таймер скрыт по умолчанию -->
+        
+        <!-- Кнопка сброса с иконкой кубика -->
+        <button id="reset-button" onclick="resetStreamer()">
+            <i class="fas fa-dice"></i> Сбросить стрим
+        </button>
     </div>
 
     <footer>
@@ -117,10 +132,12 @@
             </label>
         </div>
         <div>
-            <p>Автор: <a href="https://www.twitch.tv/sokohilton2">sokohilton2</a></p>
+            <p>Автор: <a href="https://github.com/sokohilton2">sokohilton2</a></p>
             <p>Поддержать автора через PayPal: <a href="https://streamlabs.com/sokohilton2/tip" target="_blank">Поддержать</a></p>
         </div>
     </footer>
+
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script> <!-- Для иконки кубика -->
 
     <script>
         let currentStreamer = "";
@@ -166,6 +183,10 @@
             if (streamerInput) {
                 votes[streamerInput] = (votes[streamerInput] || 0) + 1;
                 updateVoteList();
+
+                // Если за стримера проголосовали, сразу меняем стрим в окне
+                currentStreamer = streamerInput;
+                updateTwitchPlayer(currentStreamer);
             }
         }
 
@@ -227,6 +248,10 @@
 
         function toggleDarkMode() {
             document.body.classList.toggle("dark-mode");
+        }
+
+        function resetStreamer() {
+            fetchRandomStreamer(); // Сбрасываем текущего стримера и выбираем нового случайного
         }
 
         fetchRandomStreamer();
