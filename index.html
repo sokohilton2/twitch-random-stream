@@ -5,47 +5,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Случайный Twitch-стрим</title>
     <script src="https://player.twitch.tv/js/embed/v1.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        #main-container {
+            display: flex;
+            flex-direction: row;
+        }
+        #twitch-player {
+            width: 800px;
+            height: 450px;
+            border: 1px solid #ccc;
+        }
+        #sidebar {
+            width: 300px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background: #f9f9f9;
+        }
+        #vote-list {
+            margin-top: 10px;
+            padding: 10px;
+            background: white;
+            border-radius: 5px;
+        }
+        #timer {
+            font-size: 20px;
+            font-weight: bold;
+            color: red;
+        }
+    </style>
 </head>
 <body>
-    <h1>📺 Случайный Twitch-стрим (русский)</h1>
+    <div id="main-container">
+        <div>
+            <h1>📺 Случайный Twitch-стрим (русский)</h1>
+            <div id="twitch-player"></div>
+            <p>⏳ До смены стрима: <span id="timer">300</span> сек.</p>
+        </div>
 
-    <!-- Twitch плеер -->
-    <div id="twitch-player" style="width: 800px; height: 450px;"></div>
+        <div id="sidebar">
+            <h2>🔍 Выбор стримера</h2>
+            <p>Вы можете проголосовать за стримера, и если голосов будет много – он появится в окне.</p>
+            <input type="text" id="streamerInput" placeholder="Введите имя стримера">
+            <button onclick="voteForStreamer()">Голосовать</button>
 
-    <!-- Форма для выбора стримера -->
-    <h2>🔍 Хотите выбрать стримера?</h2>
-    <input type="text" id="streamerInput" placeholder="Введите имя стримера">
-    <button onclick="voteForStreamer()">Голосовать</button>
-
-    <p id="status"></p>
+            <h3>📊 Голоса за стримеров:</h3>
+            <ul id="vote-list"></ul>
+        </div>
+    </div>
 
     <script>
         let currentStreamer = "";
-        let votes = [];
+        let votes = {};
+        let countdown = 300; // 5 минут
 
         async function fetchRandomStreamer() {
             try {
                 let response = await fetch("https://twitch-proxy-4d59.onrender.com/twitch");
                 let data = await response.json();
 
-                if (data.data.length === 0) {
-                    document.getElementById("status").innerText = "Нет активных стримеров.";
+                let liveStreams = data.data.filter(stream => stream.type === "live");
+
+                if (liveStreams.length === 0) {
+                    document.getElementById("twitch-player").innerHTML = "<p>Нет активных стримеров.</p>";
                     return;
                 }
 
-                // Выбираем случайного стримера из списка
-                let randomIndex = Math.floor(Math.random() * data.data.length);
-                currentStreamer = data.data[randomIndex].user_login;
+                let randomIndex = Math.floor(Math.random() * liveStreams.length);
+                currentStreamer = liveStreams[randomIndex].user_login;
 
                 updateTwitchPlayer(currentStreamer);
             } catch (error) {
                 console.error("Ошибка:", error);
-                document.getElementById("status").innerText = "Ошибка загрузки стримов.";
+                document.getElementById("twitch-player").innerHTML = "<p>Ошибка загрузки стримов.</p>";
             }
         }
 
         function updateTwitchPlayer(streamer) {
-            document.getElementById("status").innerText = `Смотрим: ${streamer}`;
+            document.getElementById("twitch-player").innerHTML = ""; // Очищаем перед обновлением
+
             new Twitch.Player("twitch-player", {
                 width: 800,
                 height: 450,
@@ -57,27 +102,49 @@
         function voteForStreamer() {
             let streamerInput = document.getElementById("streamerInput").value.trim();
             if (streamerInput) {
-                votes.push(streamerInput);
-                document.getElementById("status").innerText = `Вы проголосовали за: ${streamerInput}`;
-                
-                setTimeout(selectRandomWinner, 5000); // Через 5 секунд выбрать случайного стримера
+                votes[streamerInput] = (votes[streamerInput] || 0) + 1;
+                updateVoteList();
             }
         }
 
-        function selectRandomWinner() {
-            if (votes.length > 0) {
-                let randomIndex = Math.floor(Math.random() * votes.length);
-                currentStreamer = votes[randomIndex];
+        function updateVoteList() {
+            let voteList = document.getElementById("vote-list");
+            voteList.innerHTML = "";
+            Object.keys(votes).forEach(streamer => {
+                let li = document.createElement("li");
+                li.textContent = `${streamer}: ${votes[streamer]} голосов`;
+                voteList.appendChild(li);
+            });
+        }
+
+        function selectWinnerAndReset() {
+            let maxVotes = Math.max(...Object.values(votes), 0);
+            let winners = Object.keys(votes).filter(streamer => votes[streamer] === maxVotes);
+
+            if (winners.length > 0) {
+                let winner = winners[Math.floor(Math.random() * winners.length)];
+                currentStreamer = winner;
                 updateTwitchPlayer(currentStreamer);
-                votes = []; // Очищаем список голосов
             }
+
+            votes = {}; // Очищаем голосование
+            updateVoteList();
         }
 
-        // Менять стрим каждые 5 минут
-        setInterval(fetchRandomStreamer, 5 * 60 * 1000);
+        function startCountdown() {
+            let timerElement = document.getElementById("timer");
+            setInterval(() => {
+                countdown--;
+                timerElement.textContent = countdown;
+                if (countdown <= 0) {
+                    countdown = 300; // Обновляем на 5 минут
+                    selectWinnerAndReset();
+                }
+            }, 1000);
+        }
 
-        // Запускаем первый стрим при загрузке
         fetchRandomStreamer();
+        startCountdown();
     </script>
 </body>
 </html>
