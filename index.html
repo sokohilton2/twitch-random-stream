@@ -6,7 +6,7 @@
     <title>Twitch API Test</title>
     <script>
         function fetchTwitchStreams() {
-            fetch("https://api.allorigins.win/raw?url=" + encodeURIComponent("https://api.twitch.tv/helix/streams?game_id=509658&language=ru"), {
+            fetch("https://cors-anywhere.herokuapp.com/https://api.twitch.tv/helix/streams?game_id=509658&language=ru", {
                 headers: {
                     "Client-ID": "b8gm3ocj4zuniuakjlbb3yhje7v98q",
                     "Authorization": "Bearer hqdqjbl7ongdzbylz33zo2zx5np99r"
@@ -15,11 +15,22 @@
             .then(response => response.json())
             .then(data => {
                 console.log(data);
-                document.getElementById("output").innerText = JSON.stringify(data, null, 2);
+                let output = document.getElementById("output");
+                output.innerHTML = ""; // Очищаем старые данные
+                
+                if (data.data.length === 0) {
+                    output.innerText = "Нет активных русскоязычных стримов.";
+                } else {
+                    data.data.forEach(stream => {
+                        let streamElement = document.createElement("p");
+                        streamElement.innerHTML = `<strong>${stream.user_name}</strong> – ${stream.title} <br> 🔴 <a href="https://twitch.tv/${stream.user_name}" target="_blank">Смотреть стрим</a>`;
+                        output.appendChild(streamElement);
+                    });
+                }
             })
             .catch(error => {
                 console.error("Ошибка:", error);
-                document.getElementById("output").innerText = "Ошибка запроса к Twitch API.";
+                document.getElementById("output").innerText = "Ошибка запроса к Twitch API. Возможно, прокси заблокирован.";
             });
         }
     </script>
@@ -27,6 +38,6 @@
 <body>
     <h1>Тест Twitch API</h1>
     <button onclick="fetchTwitchStreams()">Запросить стримы</button>
-    <pre id="output">Здесь будет ответ API...</pre>
+    <div id="output">Здесь будут результаты...</div>
 </body>
 </html>
