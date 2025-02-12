@@ -3,41 +3,81 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Twitch API Test</title>
-    <script>
-        function fetchTwitchStreams() {
-            fetch("https://cors-anywhere.herokuapp.com/https://api.twitch.tv/helix/streams?game_id=509658&language=ru", {
-                headers: {
-                    "Client-ID": "b8gm3ocj4zuniuakjlbb3yhje7v98q",
-                    "Authorization": "Bearer hqdqjbl7ongdzbylz33zo2zx5np99r"
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-                let output = document.getElementById("output");
-                output.innerHTML = ""; // Очищаем старые данные
-                
-                if (data.data.length === 0) {
-                    output.innerText = "Нет активных русскоязычных стримов.";
-                } else {
-                    data.data.forEach(stream => {
-                        let streamElement = document.createElement("p");
-                        streamElement.innerHTML = `<strong>${stream.user_name}</strong> – ${stream.title} <br> 🔴 <a href="https://twitch.tv/${stream.user_name}" target="_blank">Смотреть стрим</a>`;
-                        output.appendChild(streamElement);
-                    });
-                }
-            })
-            .catch(error => {
-                console.error("Ошибка:", error);
-                document.getElementById("output").innerText = "Ошибка запроса к Twitch API. Возможно, прокси заблокирован.";
-            });
-        }
-    </script>
+    <title>Случайный Twitch-стрим</title>
+    <script src="https://player.twitch.tv/js/embed/v1.js"></script>
 </head>
 <body>
-    <h1>Тест Twitch API</h1>
-    <button onclick="fetchTwitchStreams()">Запросить стримы</button>
-    <div id="output">Здесь будут результаты...</div>
+    <h1>📺 Случайный Twitch-стрим (русский)</h1>
+
+    <!-- Twitch плеер -->
+    <div id="twitch-player" style="width: 800px; height: 450px;"></div>
+
+    <!-- Форма для выбора стримера -->
+    <h2>🔍 Хотите выбрать стримера?</h2>
+    <input type="text" id="streamerInput" placeholder="Введите имя стримера">
+    <button onclick="voteForStreamer()">Голосовать</button>
+
+    <p id="status"></p>
+
+    <script>
+        let currentStreamer = "";
+        let votes = [];
+
+        async function fetchRandomStreamer() {
+            try {
+                let response = await fetch("https://twitch-proxy-4d59.onrender.com/twitch");
+                let data = await response.json();
+
+                if (data.data.length === 0) {
+                    document.getElementById("status").innerText = "Нет активных стримеров.";
+                    return;
+                }
+
+                // Выбираем случайного стримера из списка
+                let randomIndex = Math.floor(Math.random() * data.data.length);
+                currentStreamer = data.data[randomIndex].user_login;
+
+                updateTwitchPlayer(currentStreamer);
+            } catch (error) {
+                console.error("Ошибка:", error);
+                document.getElementById("status").innerText = "Ошибка загрузки стримов.";
+            }
+        }
+
+        function updateTwitchPlayer(streamer) {
+            document.getElementById("status").innerText = `Смотрим: ${streamer}`;
+            new Twitch.Player("twitch-player", {
+                width: 800,
+                height: 450,
+                channel: streamer,
+                autoplay: true
+            });
+        }
+
+        function voteForStreamer() {
+            let streamerInput = document.getElementById("streamerInput").value.trim();
+            if (streamerInput) {
+                votes.push(streamerInput);
+                document.getElementById("status").innerText = `Вы проголосовали за: ${streamerInput}`;
+                
+                setTimeout(selectRandomWinner, 5000); // Через 5 секунд выбрать случайного стримера
+            }
+        }
+
+        function selectRandomWinner() {
+            if (votes.length > 0) {
+                let randomIndex = Math.floor(Math.random() * votes.length);
+                currentStreamer = votes[randomIndex];
+                updateTwitchPlayer(currentStreamer);
+                votes = []; // Очищаем список голосов
+            }
+        }
+
+        // Менять стрим каждые 5 минут
+        setInterval(fetchRandomStreamer, 5 * 60 * 1000);
+
+        // Запускаем первый стрим при загрузке
+        fetchRandomStreamer();
+    </script>
 </body>
 </html>
