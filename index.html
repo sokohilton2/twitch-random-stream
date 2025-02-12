@@ -78,7 +78,7 @@
             text-decoration: underline;
         }
 
-        /* Кнопка сброса с иконкой кубика */
+        /* Кнопка случайного стрима с иконкой баклажана */
         #reset-button {
             background-color: #4CAF50;
             border: none;
@@ -116,11 +116,11 @@
         <h3>📊 Голоса за стримеров:</h3>
         <ul id="vote-list"></ul>
 
-        <p>⏳ До конца голосования: <span id="vote-timer" style="display:none">15</span> сек.</p> <!-- Таймер скрыт по умолчанию -->
+        <p id="vote-timer-text" style="display:none">⏳ До конца голосования: <span id="vote-timer">15</span> сек.</p> <!-- Таймер скрыт по умолчанию -->
         
-        <!-- Кнопка сброса с иконкой кубика -->
+        <!-- Кнопка случайного стрима с эмоджи баклажан -->
         <button id="reset-button" onclick="resetStreamer()">
-            <i class="fas fa-dice"></i> Сбросить стрим
+            🍆 Случайный стрим
         </button>
     </div>
 
@@ -144,6 +144,7 @@
         let votes = {};
         let countdown = 300; // 5 минут
         let voteCountdown = 15; // Таймер голосования (15 секунд)
+        let isVoting = false; // Флаг, чтобы определить, началось ли голосование
 
         async function fetchRandomStreamer() {
             try {
@@ -183,10 +184,8 @@
             if (streamerInput) {
                 votes[streamerInput] = (votes[streamerInput] || 0) + 1;
                 updateVoteList();
-
-                // Если за стримера проголосовали, сразу меняем стрим в окне
-                currentStreamer = streamerInput;
-                updateTwitchPlayer(currentStreamer);
+                isVoting = true;
+                document.getElementById("vote-timer-text").style.display = "inline"; // Показать таймер голосования
             }
         }
 
@@ -238,10 +237,12 @@
                     selectWinnerAndReset();
                 }
 
-                if (voteCountdown <= 0) {
+                if (isVoting && voteCountdown <= 0) {
                     voteCountdown = 15; // Обновляем голосование
                     votes = {};
                     updateVoteList();
+                    document.getElementById("vote-timer-text").style.display = "none"; // Скрыть таймер
+                    isVoting = false;
                 }
             }, 1000);
         }
