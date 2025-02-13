@@ -104,7 +104,7 @@
 <body>
 
     <h1>🎲 Twitch Стрим-Рулетка</h1>
-    <p class="subtitle">Рандомный стрим на 5 минут! Голосуй, и если выиграешь – твой стример покажется всем!</p>
+    <p class="subtitle">Рандомный русский стрим на 5 минут! Исключая Just Chatting</p>
 
     <div id="twitch-player"></div>
     <p>⏳ До смены стрима: <span id="timer">300</span> сек.</p>
@@ -123,7 +123,7 @@
         </p>
         
         <button id="reset-button" onclick="resetStreamer()">
-            🍆 Случайный стрим
+            🎮 Случайный стрим
         </button>
     </div>
 
@@ -162,10 +162,24 @@
                     `https://twitch-proxy-4d59.onrender.com/twitch?r=${Math.random()}`
                 );
                 const data = await response.json();
-                let liveStreams = data.data.filter(stream => stream.type === "live");
+                
+                // Основной фильтр: русский язык, не Just Chatting
+                let liveStreams = data.data.filter(stream => 
+                    stream.type === "live" &&
+                    stream.language === "ru" &&
+                    stream.game_name !== "Just Chatting"
+                );
+
+                // Резервный фильтр: если нет результатов - любые русские стримы
+                if (liveStreams.length === 0) {
+                    liveStreams = data.data.filter(stream => 
+                        stream.type === "live" && 
+                        stream.language === "ru"
+                    );
+                }
 
                 if (liveStreams.length === 0) {
-                    document.getElementById("twitch-player").innerHTML = "<p>Нет активных стримеров.</p>";
+                    document.getElementById("twitch-player").innerHTML = "<p>Нет активных русских стримов</p>";
                     return;
                 }
 
@@ -174,7 +188,7 @@
                 updateTwitchPlayer(currentStreamer);
             } catch (error) {
                 console.error("Ошибка:", error);
-                document.getElementById("twitch-player").innerHTML = "<p>Ошибка загрузки стримов.</p>";
+                document.getElementById("twitch-player").innerHTML = "<p>Ошибка загрузки стримов</p>";
             }
         }
 
@@ -269,6 +283,7 @@
             fetchRandomStreamer();
         }
 
+        // Инициализация при загрузке
         fetchRandomStreamer();
         startCountdown();
     </script>
